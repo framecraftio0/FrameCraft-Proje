@@ -1,0 +1,123 @@
+{
+    "name": "Component Name",
+    "slug": "component-slug",
+    "category": "heroes",
+    "description": "Brief description of this component",
+    "version": "1.0.0",
+    "author": "FrameCraftAI Team",
+    "isPremium": false,
+    "complexity": "standard",
+    "bestForSectors": [
+        "general"
+    ],
+    "notRecommendedFor": [],
+    "features": [
+        "responsive",
+        "accessible"
+    ],
+    "librariesRequired": [],
+    "performanceImpact": "low",
+    "minViewportWidth": 320,
+    "tags": [
+        "hero",
+        "modern"
+    ],
+    "editableFields": [
+        {
+            "id": "heading-main",
+            "type": "text",
+            "label": "Main Heading",
+            "selector": ".heading",
+            "defaultValue": "Welcome",
+            "placeholder": "Enter your heading...",
+            "validation": {
+                "required": true,
+                "minLength": 5,
+                "maxLength": 100
+            },
+            "styles": {
+                "fontSize": "48px",
+                "fontWeight": "700",
+                "color": "#FFFFFF",
+                "fontFamily": "Inter, sans-serif"
+            },
+            "styleControls": {
+                "fontSize": {
+                    "type": "slider",
+                    "min": 24,
+                    "max": 96,
+                    "step": 2,
+                    "unit": "px"
+                },
+                "fontWeight": {
+                    "type": "select",
+                    "options": [
+                        400,
+                        500,
+                        600,
+                        700,
+                        800,
+                        900
+                    ]
+                },
+                "color": {
+                    "type": "colorPicker",
+                    "presets": [
+                        "#FFFFFF",
+                        "#000000",
+                        "#667eea"
+                    ]
+                }
+            }
+        },
+        {
+            "id": "hero-image",
+            "type": "image",
+            "label": "Background Image",
+            "selector": ".hero-bg",
+            "defaultUrl": "https://images.unsplash.com/photo-example",
+            "dimensions": {
+                "width": 1920,
+                "height": 1080,
+                "aspectRatio": "16:9"
+            },
+            "uploadOptions": {
+                "maxSize": 5242880,
+                "formats": [
+                    "jpg",
+                    "jpeg",
+                    "png",
+                    "webp"
+                ],
+                "aiGeneration": true
+            }
+        },
+        {
+            "id": "cta-button",
+            "type": "button",
+            "label": "Call to Action",
+            "selector": ".btn-primary",
+            "defaultValue": "Get Started",
+            "styles": {
+                "backgroundColor": "#667eea",
+                "color": "#FFFFFF",
+                "padding": "16px 32px",
+                "borderRadius": "8px"
+            },
+            "linkSettings": {
+                "linkType": "page",
+                "defaultLink": "#contact"
+            }
+        }
+    ],
+    "previewImages": {
+        "desktop": "preview-desktop.png",
+        "tablet": "preview-tablet.png",
+        "mobile": "preview-mobile.png"
+    },
+    "documentation": {
+        "setup": "Component setup instructions",
+        "customization": "Customization guidelines",
+        "performance": "Performance notes"
+    }
+}

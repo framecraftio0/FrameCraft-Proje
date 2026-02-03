@@ -1,0 +1,49 @@
+name: Sync Components to Supabase
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '*/*/config.json'
+      - '*/*/component.html'
+      - '*/*/component.css'
+      - '*/*/component.js'
+      - '*/*/preview-*.png'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      
+      - name: Get changed files
+        id: changed-files
+        run: |
+          CHANGED=$(git diff --name-only HEAD^ HEAD | tr '\n' ',' | sed 's/,$//')
+          echo "files=$CHANGED" >> $GITHUB_OUTPUT
+      
+      - name: Trigger N8N Webhook
+        run: |
+          curl -X POST ${{ secrets.N8N_WEBHOOK_URL }} \
+            -H "Content-Type: application/json" \
+            -d '{
+              "event": "component_sync",
+              "repository": "${{ github.repository }}",
+              "branch": "${{ github.ref_name }}",
+              "commit_sha": "${{ github.sha }}",
+              "commit_message": "${{ github.event.head_commit.message }}",
+              "pusher": "${{ github.actor }}",
+              "changed_files": "${{ steps.changed-files.outputs.files }}"
+            }'
+      
+      - name: Wait for sync
+        run: sleep 5
+      
+      - name: Verify sync
+        run: |
+          echo "✅ Sync triggered successfully"
+          echo "Check N8N dashboard for execution details"

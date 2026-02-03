@@ -1,0 +1,84 @@
+{
+    "name": "FrameCraftAI - Text Improvement",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "improve-text",
+                "responseMode": "responseNode"
+            },
+            "id": "webhook",
+            "name": "Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent",
+                "authentication": "genericCredentialType",
+                "genericAuthType": "queryAuth",
+                "queryParameters": {
+                    "parameters": [
+                        {
+                            "name": "key",
+                            "value": "={{ $env.GEMINI_API_KEY }}"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"Improve this text to be more {{ $json.tone || 'professional' }}.\\n\\nCurrent: \\\"{{ $json.current_text }}\\\"\\n\\nMax {{ $json.max_length || 150 }} chars.\\n\\nReturn ONLY improved text.\"\n    }]\n  }],\n  \"generationConfig\": { \"temperature\": 0.8, \"maxOutputTokens\": 256 }\n}"
+            },
+            "id": "gemini",
+            "name": "Gemini",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                450,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={\n  \"improved\": \"{{ $json.candidates[0].content.parts[0].text.trim() }}\"\n}"
+            },
+            "id": "respond",
+            "name": "Respond",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                650,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Gemini",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Gemini": {
+            "main": [
+                [
+                    {
+                        "node": "Respond",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

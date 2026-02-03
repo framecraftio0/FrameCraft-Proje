@@ -1,0 +1,141 @@
+{
+    "name": "FrameCraftAI - Component Sync",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "component-sync",
+                "responseMode": "responseNode"
+            },
+            "id": "webhook-github",
+            "name": "Webhook: GitHub",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const commits = $input.first().json.commits || [];\nconst changedComponents = new Set();\n\ncommits.forEach(commit => {\n  const allFiles = [...(commit.added || []), ...(commit.modified || [])];\n  \n  allFiles.forEach(file => {\n    const match = file.match(/^([^/]+)\\/([^/]+)\\/(config\\\\.json|component\\\\.(html|css|js)|preview\\\\.png)$/);\n    if (match) {\n      changedComponents.add(`${match[1]}/${match[2]}`);\n    }\n  });\n});\n\nconst components = Array.from(changedComponents).map(path => ({\n  json: { componentPath: path }\n}));\n\nreturn components.length > 0 ? components : [{ json: { message: 'No changes' } }];"
+            },
+            "id": "parse-changes",
+            "name": "Parse Changes",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                450,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const baseUrl = 'https://raw.githubusercontent.com/' + process.env.GITHUB_REPO + '/main';\nconst path = $json.componentPath;\n\nconst fetch = async (url) => {\n  try {\n    const r = await globalThis.fetch(url);\n    return r.ok ? await r.text() : null;\n  } catch { return null; }\n};\n\nconst [config, html, css, js] = await Promise.all([\n  fetch(`${baseUrl}/${path}/config.json`).then(t => t ? JSON.parse(t) : null),\n  fetch(`${baseUrl}/${path}/component.html`),\n  fetch(`${baseUrl}/${path}/component.css`),\n  fetch(`${baseUrl}/${path}/component.js`)\n]);\n\nif (!config || !html || !css) throw new Error('Missing files');\n\nreturn { json: { path, config, html, css, js } };"
+            },
+            "id": "fetch-files",
+            "name": "Fetch Files",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                650,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "={{ $env.SUPABASE_URL }}/rest/v1/component_templates",
+                "authentication": "genericCredentialType",
+                "genericAuthType": "httpHeaderAuth",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "apikey",
+                            "value": "={{ $env.SUPABASE_SERVICE_KEY }}"
+                        },
+                        {
+                            "name": "Authorization",
+                            "value": "Bearer {{ $env.SUPABASE_SERVICE_KEY }}"
+                        },
+                        {
+                            "name": "Prefer",
+                            "value": "resolution=merge-duplicates"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "jsonBody": "={{ JSON.stringify({\n  slug: $json.config.slug,\n  name: $json.config.name,\n  category: $json.config.category,\n  html_template: $json.html,\n  css_template: $json.css,\n  js_template: $json.js,\n  editable_fields: { fields: $json.config.editableFields || [] },\n  best_for_sectors: $json.config.bestForSectors,\n  tags: $json.config.tags,\n  is_published: true\n}) }}"
+            },
+            "id": "upsert-component",
+            "name": "Upsert Component",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                850,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={ \"success\": true }"
+            },
+            "id": "respond",
+            "name": "Respond",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                1050,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Webhook: GitHub": {
+            "main": [
+                [
+                    {
+                        "node": "Parse Changes",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parse Changes": {
+            "main": [
+                [
+                    {
+                        "node": "Fetch Files",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Fetch Files": {
+            "main": [
+                [
+                    {
+                        "node": "Upsert Component",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Upsert Component": {
+            "main": [
+                [
+                    {
+                        "node": "Respond",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
