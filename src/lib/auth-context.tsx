@@ -254,10 +254,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (data.postalCode !== undefined) updateData.postal_code = data.postalCode
         if (data.bio !== undefined) updateData.bio = data.bio
 
-        // @ts-ignore - bypassing strict type check for dynamic update
-        const { error } = await supabase
-            .from('profiles')
-            .update(updateData as any)
+        const { error } = await (supabase
+            .from('profiles') as any)
+            .update(updateData)
             .eq('id', user.id)
 
         if (error) {
