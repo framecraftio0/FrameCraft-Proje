@@ -81,7 +81,7 @@ export type BusinessSectorValue = typeof BUSINESS_SECTORS[number]['value'];
 export const getSectorsByCategory = () => {
     const grouped: Record<string, any[]> = {};
 
-    BUSINESS_SECTORS.forEach(sector => {
+    (BUSINESS_SECTORS as any).forEach((sector: any) => {
         if (!grouped[sector.category]) {
             grouped[sector.category] = [];
         }

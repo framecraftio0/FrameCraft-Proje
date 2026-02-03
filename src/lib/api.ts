@@ -88,8 +88,8 @@ export const websiteApi = {
         // Clean up the object to match database schema if needed
         const updateData = updates as any
 
-        const { data, error } = await supabase
-            .from('websites')
+        const { data, error } = await (supabase
+            .from('websites') as any)
             .update(updateData)
             .eq('id', id)
             .select()
@@ -192,8 +192,8 @@ export const componentApi = {
     async updateComponent(id: string, updates: Partial<WebsiteComponent>) {
         const updateData = updates as any
 
-        const { data, error } = await supabase
-            .from('website_components')
+        const { data, error } = await (supabase
+            .from('website_components') as any)
             .update(updateData)
             .eq('id', id)
             .select('*, template:component_templates(*)')
