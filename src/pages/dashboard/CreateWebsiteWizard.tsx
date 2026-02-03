@@ -10,7 +10,6 @@ import {
     COLOR_PREFERENCES,
     getSectorsByCategory,
     type BusinessSectorValue,
-    type WebsiteStyleValue,
 } from '@/lib/constants';
 
 export default function CreateWebsiteWizard() {
@@ -89,10 +88,10 @@ export default function CreateWebsiteWizard() {
                         <div key={step} className="flex items-center">
                             <div
                                 className={`w-12 h-12 rounded-full flex items-center justify-center font-semibold transition-all ${step === currentStep
-                                        ? 'bg-indigo-600 text-white scale-110'
-                                        : step < currentStep
-                                            ? 'bg-green-500 text-white'
-                                            : 'bg-gray-200 text-gray-500'
+                                    ? 'bg-indigo-600 text-white scale-110'
+                                    : step < currentStep
+                                        ? 'bg-green-500 text-white'
+                                        : 'bg-gray-200 text-gray-500'
                                     }`}
                             >
                                 {step < currentStep ? '✓' : step}
@@ -191,8 +190,8 @@ export default function CreateWebsiteWizard() {
                                                 })
                                             }
                                             className={`p-4 border-2 rounded-lg text-left transition-all ${formData.preferences?.style === style.value
-                                                    ? 'border-indigo-600 bg-indigo-50'
-                                                    : 'border-gray-200 hover:border-indigo-300'
+                                                ? 'border-indigo-600 bg-indigo-50'
+                                                : 'border-gray-200 hover:border-indigo-300'
                                                 }`}
                                         >
                                             <div className="font-semibold text-gray-900">{style.label}</div>
@@ -216,8 +215,8 @@ export default function CreateWebsiteWizard() {
                                                 })
                                             }
                                             className={`p-3 border-2 rounded-lg text-center transition-all ${formData.preferences?.targetAudience === audience.value
-                                                    ? 'border-indigo-600 bg-indigo-50'
-                                                    : 'border-gray-200 hover:border-indigo-300'
+                                                ? 'border-indigo-600 bg-indigo-50'
+                                                : 'border-gray-200 hover:border-indigo-300'
                                                 }`}
                                         >
                                             <div className="text-2xl mb-1">{audience.icon}</div>
@@ -247,8 +246,8 @@ export default function CreateWebsiteWizard() {
                                                 });
                                             }}
                                             className={`p-3 border-2 rounded-lg text-left transition-all ${formData.preferences?.features?.includes(feature.value)
-                                                    ? 'border-green-600 bg-green-50'
-                                                    : 'border-gray-200 hover:border-green-300'
+                                                ? 'border-green-600 bg-green-50'
+                                                : 'border-gray-200 hover:border-green-300'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-2">
@@ -274,8 +273,8 @@ export default function CreateWebsiteWizard() {
                                                 })
                                             }
                                             className={`p-3 border-2 rounded-lg text-center transition-all ${formData.preferences?.colorPreference === color.value
-                                                    ? 'border-indigo-600 bg-indigo-50'
-                                                    : 'border-gray-200 hover:border-indigo-300'
+                                                ? 'border-indigo-600 bg-indigo-50'
+                                                : 'border-gray-200 hover:border-indigo-300'
                                                 }`}
                                         >
                                             {color.color && (

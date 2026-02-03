@@ -10,7 +10,7 @@ import DashboardLayout from '@/components/dashboard/DashboardLayout'
 export default function WebsiteSettings() {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
-    const { user } = useAuth()
+    useAuth()
 
     const [website, setWebsite] = useState<Website | null>(null)
     const [isLoading, setIsLoading] = useState(true)

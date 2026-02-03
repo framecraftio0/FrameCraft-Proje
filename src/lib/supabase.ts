@@ -47,7 +47,7 @@ export const supabaseHelpers = {
 
     // Check if user is admin
     async isAdmin(userId: string) {
-        const profile = await this.getUserProfile(userId)
+        const profile = await this.getUserProfile(userId) as any
         // You can add an is_admin field to profiles table or check email against admin list
         return profile?.email?.endsWith('@framecraftai.com') || false
     },

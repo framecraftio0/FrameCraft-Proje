@@ -79,7 +79,7 @@ export type BusinessSectorValue = typeof BUSINESS_SECTORS[number]['value'];
 
 // Group sectors by category for select dropdown
 export const getSectorsByCategory = () => {
-    const grouped: Record<string, typeof BUSINESS_SECTORS> = {};
+    const grouped: Record<string, any[]> = {};
 
     BUSINESS_SECTORS.forEach(sector => {
         if (!grouped[sector.category]) {

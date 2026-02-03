@@ -86,7 +86,7 @@ export const websiteApi = {
     async updateWebsite(id: string, updates: Partial<Website>) {
         // Clean up the object to match database schema if needed
         // Clean up the object to match database schema if needed
-        const { ...updateData } = updates as any
+        const updateData = updates as any
 
         const { data, error } = await supabase
             .from('websites')
@@ -190,11 +190,11 @@ export const componentApi = {
 
     // Update component
     async updateComponent(id: string, updates: Partial<WebsiteComponent>) {
-        const { ...updateData } = updates as any
+        const updateData = updates as any
 
         const { data, error } = await supabase
             .from('website_components')
-            .update(updateData as any)
+            .update(updateData)
             .eq('id', id)
             .select('*, template:component_templates(*)')
             .single()
@@ -215,7 +215,7 @@ export const componentApi = {
     },
 
     // Reorder components
-    async reorderComponents(websiteId: string, pagePath: string, orderedIds: string[]) {
+    async reorderComponents(_websiteId: string, _pagePath: string, orderedIds: string[]) {
         // This would ideally be a stored procedure or transaction
         // For simplicity, we'll update one by one for now (or optimize later)
         const updates = orderedIds.map((id, index) => ({
