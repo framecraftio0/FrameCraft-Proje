@@ -11,6 +11,8 @@ import ResetPassword from '@/pages/auth/ResetPassword'
 import AuthCallback from '@/pages/auth/AuthCallback'
 import AdminLogin from '@/pages/auth/AdminLogin'
 import AdminDashboard from '@/pages/admin/AdminDashboard'
+import ComponentBuilder from '@/pages/admin/ComponentBuilder'
+import SiteBuilder from '@/pages/builder/SiteBuilder'
 
 import UserProfile from '@/pages/dashboard/UserProfile'
 import Dashboard from '@/pages/dashboard/Dashboard'
@@ -39,6 +41,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/dashboard/websites/new" element={<CreateWebsiteWizard />} />
+            <Route path="/dashboard/websites/:id/builder" element={<SiteBuilder />} />
             <Route path="/profile" element={<UserProfile />} />
             <Route path="/websites/:id/settings" element={<WebsiteSettings />} />
           </Route>
@@ -46,6 +49,7 @@ function App() {
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/components/new" element={<ComponentBuilder />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

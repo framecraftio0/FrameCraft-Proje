@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/lib/auth-context'
@@ -7,13 +8,12 @@ import type { Website } from '@/types'
 import DashboardLayout from '@/components/dashboard/DashboardLayout'
 import WebsiteCard from '@/components/dashboard/WebsiteCard'
 import EmptyState from '@/components/dashboard/EmptyState'
-import CreateWebsiteModal from '@/components/dashboard/CreateWebsiteModal'
 
 export default function Dashboard() {
-    const { user } = useAuth()
+    // const { user } = useAuth() // Removed unused
+    const navigate = useNavigate()
     const [websites, setWebsites] = useState<Website[]>([])
     const [isLoading, setIsLoading] = useState(true)
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
 
     // Fetch websites on mount
@@ -29,26 +29,6 @@ export default function Dashboard() {
             console.error('Failed to load websites:', error)
         } finally {
             setIsLoading(false)
-        }
-    }
-
-    const handleCreateWebsite = async (name: string, subdomain: string) => {
-        if (!user) return
-
-        try {
-            await websiteApi.createWebsite({
-                site_name: name,
-                subdomain,
-                user_id: user.id
-            })
-            await loadWebsites() // Reload list
-            setIsCreateModalOpen(false)
-
-            // Success notification
-            alert(`✅ "${name}" başarıyla oluşturuldu!`)
-        } catch (error) {
-            console.error('Failed to create website:', error)
-            throw error // Re-throw to be handled by modal
         }
     }
 
@@ -85,15 +65,13 @@ export default function Dashboard() {
         <DashboardLayout
             title="Projelerim"
             action={
-                websites.length > 0 && (
-                    <button
-                        onClick={() => setIsCreateModalOpen(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
-                    >
-                        <Plus className="w-5 h-5" />
-                        Yeni Proje
-                    </button>
-                )
+                <button
+                    onClick={() => navigate('/dashboard/websites/new')}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                >
+                    <Plus className="w-5 h-5" />
+                    Yeni Proje
+                </button>
             }
         >
             {/* Search Bar (only if has websites) */}
@@ -113,7 +91,7 @@ export default function Dashboard() {
             )}
 
             {websites.length === 0 ? (
-                <EmptyState onCreateClick={() => setIsCreateModalOpen(true)} />
+                <EmptyState onCreateClick={() => navigate('/dashboard/websites/new')} />
             ) : filteredWebsites.length === 0 ? (
                 <div className="text-center py-20">
                     <p className="text-gray-500">Arama kriterlerine uygun proje bulunamadı.</p>
@@ -133,12 +111,6 @@ export default function Dashboard() {
                     ))}
                 </motion.div>
             )}
-
-            <CreateWebsiteModal
-                isOpen={isCreateModalOpen}
-                onClose={() => setIsCreateModalOpen(false)}
-                onCreate={handleCreateWebsite}
-            />
         </DashboardLayout>
     )
 }

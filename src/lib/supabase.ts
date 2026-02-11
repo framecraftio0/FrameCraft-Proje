@@ -16,6 +16,18 @@ export const supabase = createClient<Database>(
             persistSession: true,
             autoRefreshToken: true,
         },
+        global: {
+            headers: {
+                'x-client-info': 'framecraftai-web',
+            },
+        },
+        db: {
+            schema: 'public',
+        },
+        // Add global fetch timeout
+        realtime: {
+            timeout: 30000,
+        },
     }
 )
 

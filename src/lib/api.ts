@@ -152,6 +152,34 @@ export const templateApi = {
 
         if (error) throw error
         return data
+    },
+
+    // Create a new component template
+    async createTemplate(data: {
+        name: string
+        slug: string
+        category: string
+        html_template: string
+        css_template: string
+        js_template?: string // Optional
+        editable_fields?: Record<string, any>
+        is_published?: boolean
+    }) {
+        const { data: newTemplate, error } = await supabase
+            .from('component_templates')
+            .insert({
+                ...data,
+                editable_fields: data.editable_fields || { fields: [] }, // Ensure valid JSON
+                is_published: data.is_published ?? true
+            } as any)
+            .select()
+            .single()
+
+        if (error) {
+            console.error('Create template error:', error)
+            throw error // Let the UI handle the error
+        }
+        return newTemplate
     }
 }
 

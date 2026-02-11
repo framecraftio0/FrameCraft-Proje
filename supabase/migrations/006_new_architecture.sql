@@ -72,10 +72,19 @@ ADD COLUMN IF NOT EXISTS section_name TEXT,
 ADD COLUMN IF NOT EXISTS version INT DEFAULT 1,
 ADD COLUMN IF NOT EXISTS previous_version_id UUID REFERENCES website_components(id);
 
--- Add check constraint for source_type
-ALTER TABLE website_components
-ADD CONSTRAINT check_source_type 
-CHECK (source_type IN ('github', 'ai-generated'));
+-- Add check constraint for source_type (with IF NOT EXISTS check)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'check_source_type' 
+    AND conrelid = 'website_components'::regclass
+  ) THEN
+    ALTER TABLE website_components
+    ADD CONSTRAINT check_source_type 
+    CHECK (source_type IN ('github', 'ai-generated'));
+  END IF;
+END $$;
 
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_website_components_source 

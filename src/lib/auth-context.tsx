@@ -136,7 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // Add timeout to prevent infinite hanging
             const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('Supabase bağlantı zaman aşımı (10 saniye)')), 10000)
+                setTimeout(() => reject(new Error('Supabase bağlantı zaman aşımı (30 saniye)')), 30000)
             })
 
             const signInPromise = supabase.auth.signInWithPassword({

@@ -1,0 +1,450 @@
+{
+    "name": "AI Site Generator V6 (Schema Aligned)",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "/webhook/generate-site",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "id": "webhook-trigger",
+            "name": "Webhook Trigger",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                0,
+                0
+            ],
+            "webhookId": "e1c34e97-ca58-471a-8b82-f4f0b8879880"
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "id-1",
+                            "name": "user_id",
+                            "value": "={{ $json.body.user_id }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "id-2",
+                            "name": "business_name",
+                            "value": "={{ $json.body.business_name }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "id-3",
+                            "name": "business_sector",
+                            "value": "={{ $json.body.business_sector }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "id-4",
+                            "name": "description",
+                            "value": "={{ $json.body.description }}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "workflow-config",
+            "name": "Workflow Configuration",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                220,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ 'User ID: ' + $json.user_id + '\\nBusiness Name: ' + $json.business_name + '\\nBusiness Sector: ' + $json.business_sector + '\\nDescription: ' + $json.description }}",
+                "hasOutputParser": true,
+                "options": {
+                    "maxIterations": 50,
+                    "systemMessage": "You are an expert AI Web Developer.\n\nYOUR GOAL: Analyze business info, select components, AND CREATE THE WEBSITE IN THE DATABASE.\n\nTOOL USAGE INSTRUCTIONS:\n1. 'Fetch Templates': No args required.\n2. 'Create Website': You MUST provide arguments: 'user_id', 'title' (use business_name), 'subdomain' (lowercase, no spaces), 'description'.\n3. 'Add Component': You MUST provide arguments: 'website_id', 'component_id', 'order_index' (number), 'props' (JSON object for styles), 'content' (JSON object for text).\n\nSTEP-BY-STEP PROCESS:\n1. Update yourself on available templates using 'Fetch Templates'.\n2. Select components.\n3. CALL 'Create Website' tool. Capture the returned 'id' (UUID).\n4. Loop through components and CALL 'Add Component' tool for each one using the captured 'website_id'.\n5. Return JSON: { website_id, subdomain, status: 'success' }."
+                }
+            },
+            "id": "ai-agent",
+            "name": "AI Site Generator Agent",
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 3.1,
+            "position": [
+                600,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "options": {
+                    "temperature": 0.5,
+                    "safetySettings": {
+                        "values": [
+                            {
+                                "category": "HARM_CATEGORY_HATE_SPEECH",
+                                "threshold": "BLOCK_NONE"
+                            },
+                            {
+                                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                                "threshold": "BLOCK_NONE"
+                            },
+                            {
+                                "category": "HARM_CATEGORY_HARASSMENT",
+                                "threshold": "BLOCK_NONE"
+                            },
+                            {
+                                "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                                "threshold": "BLOCK_NONE"
+                            }
+                        ]
+                    }
+                }
+            },
+            "id": "gemini-model-agent",
+            "name": "Google Gemini Chat Model",
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                450,
+                250
+            ],
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "IMy028KAD1eSlbiz",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "toolDescription": "Fetch available component templates from Supabase. Returns list of components.",
+                "url": "https://afnvmocnzbenttcbnkcr.supabase.co/rest/v1/component_templates?select=*",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "apikey",
+                            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmbnZtb2NuemJlbnR0Y2Jua2NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4OTIwNjEsImV4cCI6MjA4NTQ2ODA2MX0.EHcKc2J_XEeGLAv9HvsGdgZqJrMMGMbsdzRDcwbRGL0"
+                        },
+                        {
+                            "name": "Authorization",
+                            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmbnZtb2NuemJlbnR0Y2Jua2NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4OTIwNjEsImV4cCI6MjA4NTQ2ODA2MX0.EHcKc2J_XEeGLAv9HvsGdgZqJrMMGMbsdzRDcwbRGL0"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "tool-fetch-templates",
+            "name": "Fetch Templates",
+            "type": "n8n-nodes-base.httpRequestTool",
+            "typeVersion": 4.3,
+            "position": [
+                600,
+                250
+            ]
+        },
+        {
+            "parameters": {
+                "toolDescription": "Create a new website record. Args: user_id, title, subdomain, description.",
+                "method": "POST",
+                "url": "https://afnvmocnzbenttcbnkcr.supabase.co/rest/v1/websites",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "apikey",
+                            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmbnZtb2NuemJlbnR0Y2Jua2NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4OTIwNjEsImV4cCI6MjA4NTQ2ODA2MX0.EHcKc2J_XEeGLAv9HvsGdgZqJrMMGMbsdzRDcwbRGL0"
+                        },
+                        {
+                            "name": "Authorization",
+                            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmbnZtb2NuemJlbnR0Y2Jua2NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4OTIwNjEsImV4cCI6MjA4NTQ2ODA2MX0.EHcKc2J_XEeGLAv9HvsGdgZqJrMMGMbsdzRDcwbRGL0"
+                        },
+                        {
+                            "name": "Prefer",
+                            "value": "return=representation"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "keypair",
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "user_id",
+                            "value": "={{ $json.user_id }}"
+                        },
+                        {
+                            "name": "site_name",
+                            "value": "={{ $json.title }}"
+                        },
+                        {
+                            "name": "subdomain",
+                            "value": "={{ $json.subdomain }}"
+                        },
+                        {
+                            "name": "meta_description",
+                            "value": "={{ $json.description }}"
+                        },
+                        {
+                            "name": "business_sector",
+                            "value": "={{ $json.business_sector }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "tool-create-website",
+            "name": "Create Website",
+            "type": "n8n-nodes-base.httpRequestTool",
+            "typeVersion": 4.3,
+            "position": [
+                750,
+                250
+            ]
+        },
+        {
+            "parameters": {
+                "toolDescription": "Add a component. Args: website_id, component_id, order_index, props, content.",
+                "method": "POST",
+                "url": "https://afnvmocnzbenttcbnkcr.supabase.co/rest/v1/website_components",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "apikey",
+                            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmbnZtb2NuemJlbnR0Y2Jua2NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4OTIwNjEsImV4cCI6MjA4NTQ2ODA2MX0.EHcKc2J_XEeGLAv9HvsGdgZqJrMMGMbsdzRDcwbRGL0"
+                        },
+                        {
+                            "name": "Authorization",
+                            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmbnZtb2NuemJlbnR0Y2Jua2NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4OTIwNjEsImV4cCI6MjA4NTQ2ODA2MX0.EHcKc2J_XEeGLAv9HvsGdgZqJrMMGMbsdzRDcwbRGL0"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "keypair",
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "website_id",
+                            "value": "={{ $json.website_id }}"
+                        },
+                        {
+                            "name": "template_id",
+                            "value": "={{ $json.component_id }}"
+                        },
+                        {
+                            "name": "section_order",
+                            "value": "={{ $json.order_index }}"
+                        },
+                        {
+                            "name": "custom_styles",
+                            "value": "={{ $json.props || {} }}"
+                        },
+                        {
+                            "name": "custom_content",
+                            "value": "={{ $json.content || {} }}"
+                        },
+                        {
+                            "name": "page_path",
+                            "value": "/"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "tool-add-component",
+            "name": "Add Component",
+            "type": "n8n-nodes-base.httpRequestTool",
+            "typeVersion": 4.3,
+            "position": [
+                900,
+                250
+            ]
+        },
+        {
+            "parameters": {
+                "schemaType": "manual",
+                "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"website_id\": { \"type\": \"string\", \"description\": \"UUID\" },\n    \"subdomain\": { \"type\": \"string\", \"description\": \"Subdomain\" },\n    \"status\": { \"type\": \"string\" }\n  },\n  \"required\": [\"website_id\", \"subdomain\", \"status\"]\n}",
+                "autoFix": true
+            },
+            "id": "output-parser",
+            "name": "Structured Output Parser",
+            "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+            "typeVersion": 1.3,
+            "position": [
+                850,
+                400
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json.output }}",
+                "options": {}
+            },
+            "id": "return-response",
+            "name": "Return JSON Response",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                1200,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "options": {
+                    "maxOutputTokens": 4096,
+                    "temperature": 0.5,
+                    "safetySettings": {
+                        "values": [
+                            {
+                                "category": "HARM_CATEGORY_HATE_SPEECH",
+                                "threshold": "BLOCK_NONE"
+                            },
+                            {
+                                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                                "threshold": "BLOCK_NONE"
+                            },
+                            {
+                                "category": "HARM_CATEGORY_HARASSMENT",
+                                "threshold": "BLOCK_NONE"
+                            },
+                            {
+                                "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                                "threshold": "BLOCK_NONE"
+                            }
+                        ]
+                    }
+                }
+            },
+            "id": "gemini-model-parser",
+            "name": "Google Gemini Chat Model (Parser)",
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                950,
+                500
+            ],
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "IMy028KAD1eSlbiz",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Webhook Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Workflow Configuration",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Workflow Configuration": {
+            "main": [
+                [
+                    {
+                        "node": "AI Site Generator Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Google Gemini Chat Model": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "AI Site Generator Agent",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Fetch Templates": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "AI Site Generator Agent",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Website": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "AI Site Generator Agent",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Add Component": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "AI Site Generator Agent",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Structured Output Parser": {
+            "ai_outputParser": [
+                [
+                    {
+                        "node": "AI Site Generator Agent",
+                        "type": "ai_outputParser",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "AI Site Generator Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Return JSON Response",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Google Gemini Chat Model (Parser)": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Structured Output Parser",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
