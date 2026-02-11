@@ -407,10 +407,110 @@ function WebsitesContent() {
 }
 
 function ComponentsContent() {
+    const navigate = useNavigate()
+
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Bileşen Şablonları</h2>
-            <p className="text-gray-600">Figma bileşenleri yönetimi burada olacak.</p>
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-800">Bileşen Yönetimi</h2>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* GitHub Component Import */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl shadow-lg p-8 text-white cursor-pointer hover:shadow-xl transition-all group"
+                    onClick={() => navigate('/admin/components/new')}
+                >
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm group-hover:bg-white/30 transition-colors">
+                            <FileText className="w-8 h-8" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold mb-1">Yeni Bileşen Ekle</h3>
+                            <p className="text-sm text-purple-100">GitHub'dan veya manuel olarak</p>
+                        </div>
+                    </div>
+                    <p className="text-sm text-white/80 leading-relaxed">
+                        GitHub repolarından component import et veya manuel HTML/CSS ile yeni bileşen oluştur.
+                    </p>
+                    <div className="mt-6 flex items-center gap-2 text-sm font-medium">
+                        <span>Component Builder'ı Aç</span>
+                        <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    </div>
+                </motion.div>
+
+                {/* Component List */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 cursor-pointer hover:shadow-md transition-all group"
+                >
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="w-16 h-16 bg-blue-50 rounded-lg flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                            <FileText className="w-8 h-8 text-blue-600" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-gray-800 mb-1">Mevcut Bileşenler</h3>
+                            <p className="text-sm text-gray-500">Yönet ve düzenle</p>
+                        </div>
+                    </div>
+                    <p className="text-sm text-gray-600 leading-relaxed">
+                        Sistemde kayıtlı tüm component şablonlarını görüntüle, düzenle veya sil.
+                    </p>
+                    <div className="mt-6 flex items-center gap-2 text-sm font-medium text-blue-600">
+                        <span>Yakında...</span>
+                    </div>
+                </motion.div>
+            </div>
+
+            {/* Info Card */}
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Sparkles className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                        <h4 className="font-semibold text-gray-800 mb-2">GitHub Integration</h4>
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                            Component Builder artık GitHub repolarınızdan direkt component import edebilir.
+                            Repository URL'inizi girin, klasörü seçin ve sistem otomatik olarak HTML, CSS ve değişkenleri parse eder.
+                        </p>
+                        <div className="mt-4 space-y-2">
+                            <div className="flex items-center gap-2 text-sm text-gray-700">
+                                <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
+                                <span>Otomatik dosya tespiti (HTML, CSS, config.json)</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-gray-700">
+                                <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
+                                <span>Değişken otomatik algılama ({"{{variable}}"})</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-gray-700">
+                                <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
+                                <span>Private repository desteği (GitHub token ile)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Example Card */}
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
+                <h4 className="font-semibold text-gray-800 mb-3">Örnek GitHub Repository Formatı:</h4>
+                <div className="bg-white rounded-lg p-4 border border-gray-200 font-mono text-xs text-gray-700">
+                    <div className="space-y-1">
+                        <div>components/</div>
+                        <div className="ml-4">hero-modern/</div>
+                        <div className="ml-8 text-blue-600">index.html</div>
+                        <div className="ml-8 text-blue-600">style.css</div>
+                        <div className="ml-8 text-gray-500">script.js (opsiyonel)</div>
+                        <div className="ml-8 text-gray-500">config.json (opsiyonel)</div>
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }
