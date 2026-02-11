@@ -99,7 +99,13 @@ export default function GitHubBrowser({ onComponentSelect }: GitHubBrowserProps)
             }
 
             // Parse component
-            const component = await parseComponentFromGitHub(files);
+            const component = await parseComponentFromGitHub(files, {
+                owner: parsed.owner,
+                repo: parsed.repo,
+                path: folder.path,
+                branch,
+                token: token || undefined
+            });
 
             // Return to parent
             onComponentSelect(component);
