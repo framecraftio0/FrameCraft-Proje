@@ -209,9 +209,23 @@ export default function GitHubBrowser({ onComponentSelect }: GitHubBrowserProps)
             {/* Folders List */}
             {folders.length > 0 && (
                 <div className="border border-gray-200 rounded-lg p-4">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-3">
-                        Select Component Folder
-                    </h4>
+                    <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-semibold text-gray-700">
+                            Select Component Folder
+                        </h4>
+                        <button
+                            onClick={() => handleSelectFolder({
+                                name: currentPath || 'root',
+                                path: currentPath || '',
+                                type: 'dir'
+                            })}
+                            disabled={isLoading}
+                            className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded-md transition-colors disabled:opacity-50 flex items-center gap-1"
+                        >
+                            <CheckCircle size={12} />
+                            Use Current Directory
+                        </button>
+                    </div>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
                         {folders.map((folder) => (
                             <button
