@@ -121,29 +121,40 @@ async function parseReactComponent(config: GitHubConfig): Promise<ParsedComponen
     let componentContent = '';
     let componentName = 'React Component';
 
-    // Look in src/app/components first
-    const componentsPath = srcFiles.find(f =>
-        f.type === 'dir' && f.path.includes('app/components')
-    );
+    // Try multiple common component paths
+    const commonComponentPaths = [
+        'src/app/components',
+        'src/components',
+        'src/app',
+        'src'
+    ];
 
-    if (componentsPath) {
-        const componentFiles = await browseGitHubDirectory({
-            ...config,
-            path: componentsPath.path
-        });
+    for (const componentPath of commonComponentPaths) {
+        try {
+            const fullPath = config.path ? `${config.path}/${componentPath}` : componentPath;
 
-        // Find the main component file (usually Hero.tsx, Component.tsx, or index.tsx)
-        const mainComponent = componentFiles.find(f =>
-            f.type === 'file' &&
-            (f.name.endsWith('.tsx') || f.name.endsWith('.jsx')) &&
-            !f.name.startsWith('index') && // Skip index files, usually just exports
-            !f.path.includes('/ui/') && // Skip UI utility components
-            !f.path.includes('/figma/') // Skip Figma-related files
-        ) || componentFiles.find(f => f.name === 'index.tsx' || f.name === 'index.jsx');
+            const componentFiles = await browseGitHubDirectory({
+                ...config,
+                path: fullPath
+            });
 
-        if (mainComponent && mainComponent.download_url) {
-            componentContent = await fetchFileContent(mainComponent.download_url);
-            componentName = mainComponent.name.replace(/\.(tsx|jsx)$/, '');
+            // Find the main component file (usually Hero.tsx, Component.tsx, or index.tsx)
+            const mainComponent = componentFiles.find(f =>
+                f.type === 'file' &&
+                (f.name.endsWith('.tsx') || f.name.endsWith('.jsx')) &&
+                !f.name.startsWith('index') && // Skip index files, usually just exports
+                !f.path.includes('/ui/') && // Skip UI utility components
+                !f.path.includes('/figma/') // Skip Figma-related files
+            ) || componentFiles.find(f => f.name === 'index.tsx' || f.name === 'index.jsx');
+
+            if (mainComponent && mainComponent.download_url) {
+                componentContent = await fetchFileContent(mainComponent.download_url);
+                componentName = mainComponent.name.replace(/\.(tsx|jsx)$/, '');
+                break; // Found component, exit loop
+            }
+        } catch (error) {
+            // Path doesn't exist, try next one
+            continue;
         }
     }
 
