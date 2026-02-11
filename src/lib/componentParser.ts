@@ -112,9 +112,13 @@ async function parseStaticComponent(files: GitHubFile[]): Promise<ParsedComponen
  */
 async function parseReactComponent(config: GitHubConfig): Promise<ParsedComponent> {
     // Browse component directory
+    const srcPath = (config.path && config.path.trim() !== '')
+        ? `${config.path}/src`
+        : 'src';
+
     const srcFiles = await browseGitHubDirectory({
         ...config,
-        path: `${config.path}/src`
+        path: srcPath
     });
 
     // Find component files (.tsx, .jsx)
@@ -131,7 +135,10 @@ async function parseReactComponent(config: GitHubConfig): Promise<ParsedComponen
 
     for (const componentPath of commonComponentPaths) {
         try {
-            const fullPath = config.path ? `${config.path}/${componentPath}` : componentPath;
+            // Properly handle empty path - empty string should be treated as root
+            const fullPath = (config.path && config.path.trim() !== '')
+                ? `${config.path}/${componentPath}`
+                : componentPath;
 
             const componentFiles = await browseGitHubDirectory({
                 ...config,
