@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { Save, ArrowLeft, RefreshCw, FileCode, Github } from 'lucide-react';
+import { Save, ArrowLeft, RefreshCw, FileCode, Github, FolderOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import CodeEditor from '@/components/admin/CodeEditor';
 import LivePreview from '@/components/admin/LivePreview';
 import GitHubBrowser from '@/components/admin/GitHubBrowser';
+import { FolderUpload } from '@/components/admin/FolderUpload';
 import { templateApi } from '@/lib/api';
 
 export default function ComponentBuilder() {
     const navigate = useNavigate();
-    const [sourceMode, setSourceMode] = useState<'manual' | 'github'>('manual');
+    const [sourceMode, setSourceMode] = useState<'manual' | 'github' | 'upload'>('upload');
     const [name, setName] = useState('');
     const [category, setCategory] = useState('Hero');
     const [html, setHtml] = useState('<div class="my-component">\n  <h1>{{title}}</h1>\n  <p>{{description}}</p>\n</div>');
@@ -105,10 +106,20 @@ export default function ComponentBuilder() {
                     <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                         <div className="flex border-b border-gray-200">
                             <button
+                                onClick={() => setSourceMode('upload')}
+                                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${sourceMode === 'upload'
+                                    ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-700'
+                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                    }`}
+                            >
+                                <FolderOpen size={16} />
+                                Klasör Yükle
+                            </button>
+                            <button
                                 onClick={() => setSourceMode('manual')}
                                 className={`flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${sourceMode === 'manual'
-                                        ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-700'
-                                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                    ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-700'
+                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                                     }`}
                             >
                                 <FileCode size={16} />
@@ -117,8 +128,8 @@ export default function ComponentBuilder() {
                             <button
                                 onClick={() => setSourceMode('github')}
                                 className={`flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${sourceMode === 'github'
-                                        ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-700'
-                                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                    ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-700'
+                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                                     }`}
                             >
                                 <Github size={16} />
@@ -127,7 +138,9 @@ export default function ComponentBuilder() {
                         </div>
 
                         <div className="p-6">
-                            {sourceMode === 'manual' ? (
+                            {sourceMode === 'upload' ? (
+                                <FolderUpload onComponentParsed={handleGitHubImport} />
+                            ) : sourceMode === 'manual' ? (
                                 <>
                                     {/* Metadata */}
                                     <div className="space-y-4">
