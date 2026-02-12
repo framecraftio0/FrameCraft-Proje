@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import CodeEditor from '@/components/admin/CodeEditor';
 import LivePreview from '@/components/admin/LivePreview';
-import { ReactPreview } from '@/components/admin/ReactPreview';
 import GitHubBrowser from '@/components/admin/GitHubBrowser';
 import { FolderUpload } from '@/components/admin/FolderUpload';
 import { templateApi } from '@/lib/api';
@@ -22,8 +21,6 @@ export default function ComponentBuilder() {
         description: 'Bu bir örnek açıklama metnidir.'
     });
     const [isSaving, setIsSaving] = useState(false);
-    const [originalComponentCode, setOriginalComponentCode] = useState<string>(''); // For React preview
-    const [useReactPreview, setUseReactPreview] = useState(false); // Toggle between HTML and React preview
 
     // Auto-detect variables in HTML
     React.useEffect(() => {
@@ -65,22 +62,13 @@ export default function ComponentBuilder() {
         css: string;
         js?: string;
         variables: Record<string, string>;
-        originalCode?: string; // Original TSX/JSX code for React preview
+        originalCode?: string;
     }) => {
         // Pre-fill form with GitHub component data
         setName(component.name);
         setCategory(component.category);
         setHtml(component.html);
         setCss(component.css);
-
-        // Store original component code if available (for React preview)
-        if (component.originalCode) {
-            setOriginalComponentCode(component.originalCode);
-            setUseReactPreview(true); // Enable React preview when we have original code
-        } else {
-            setOriginalComponentCode('');
-            setUseReactPreview(false);
-        }
 
         // Set test values from variable descriptions
         const newTestValues: Record<string, string> = {};
@@ -212,28 +200,12 @@ export default function ComponentBuilder() {
                     <div className="flex-1 bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm flex flex-col">
                         <div className="p-4 border-b bg-gray-50 font-medium text-sm flex justify-between items-center">
                             <span>Canlı Önizleme</span>
-                            {useReactPreview ? (
-                                <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
-                                    ⚡ React + Framer Motion
-                                </span>
-                            ) : (
-                                <span className="text-gray-500 text-xs font-normal">
-                                    Değişkenler test verisi ile gösteriliyor
-                                </span>
-                            )}
+                            <span className="text-gray-500 text-xs font-normal">
+                                Değişkenler test verisi ile gösteriliyor
+                            </span>
                         </div>
-                        <div className="flex-1 bg-gray-100">
-                            {useReactPreview && originalComponentCode ? (
-                                <ReactPreview
-                                    componentCode={originalComponentCode}
-                                    cssCode={css}
-                                    variables={testValues}
-                                />
-                            ) : (
-                                <div className="p-4">
-                                    <LivePreview html={html} css={css} variables={testValues} />
-                                </div>
-                            )}
+                        <div className="flex-1 p-4 bg-gray-100">
+                            <LivePreview html={html} css={css} variables={testValues} />
                         </div>
                     </div>
 

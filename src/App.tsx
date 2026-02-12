@@ -12,6 +12,7 @@ import AuthCallback from '@/pages/auth/AuthCallback'
 import AdminLogin from '@/pages/auth/AdminLogin'
 import AdminDashboard from '@/pages/admin/AdminDashboard'
 import ComponentBuilder from '@/pages/admin/ComponentBuilder'
+import ComponentPreview from '@/pages/admin/ComponentPreview'
 import SiteBuilder from '@/pages/builder/SiteBuilder'
 
 import UserProfile from '@/pages/dashboard/UserProfile'
@@ -50,6 +51,7 @@ function App() {
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/components/new" element={<ComponentBuilder />} />
+          <Route path="/admin/components/preview" element={<ComponentPreview />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
