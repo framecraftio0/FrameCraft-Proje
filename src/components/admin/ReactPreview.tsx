@@ -62,56 +62,118 @@ export function ReactPreview({ componentCode, cssCode, variables = {} }: ReactPr
 </head>
 <body>
     <div id="root"></div>
+    <div id="error-display" style="display: none; padding: 20px; background: #fee; border: 2px solid #c00; border-radius: 8px; margin: 20px; font-family: monospace;"></div>
     
-    <script type="module">
-        const { useState, useEffect, useRef, useCallback } = React;
-        const { motion, AnimatePresence, useScroll, useTransform } = Motion;
-        
-        try {
-            // Transform the component code to work in browser
-            let componentCode = \`${processedCode.replace(/`/g, '\\`')}\`;
-            
-            // Remove imports (we're using CDN)
-            componentCode = componentCode.replace(/^import.*from.*$/gm, '');
-            
-            // Remove export
-            componentCode = componentCode.replace(/^export\\s+(function|const)/gm, '$1');
-            
-            // Extract component function
-            const componentMatch = componentCode.match(/function\\s+(\\w+)\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*\\}/);
-            
-            if (componentMatch) {
-                // Create component function
-                const ComponentFunction = new Function(
-                    'React', 'useState', 'useEffect', 'useRef', 'useCallback',
-                    'motion', 'AnimatePresence', 'useScroll', 'useTransform',
-                    componentCode + '; return ' + componentMatch[1] + ';'
-                );
-                
-                const Component = ComponentFunction(
-                    React, useState, useEffect, useRef, useCallback,
-                    motion, AnimatePresence, useScroll, useTransform
-                );
-                
-                // Render component
-                const root = ReactDOM.createRoot(document.getElementById('root'));
-                root.render(React.createElement(Component));
-            } else {
-                throw new Error('Could not find component function');
-            }
-        } catch (err) {
-            document.getElementById('root').innerHTML = \`
-                <div style="padding: 20px; background: #fee; border: 1px solid #fcc; border-radius: 8px; margin: 20px;">
-                    <h3 style="color: #c00; margin: 0 0 10px 0;">Preview Error</h3>
-                    <p style="margin: 0; color: #600; font-family: monospace; font-size: 12px;">
-                        \${err.message}
-                    </p>
-                    <p style="margin: 10px 0 0 0; color: #666; font-size: 12px;">
-                        The component may use features not supported in preview mode.
-                    </p>
-                </div>
+    <script>
+        function showError(title, message, details) {
+            const errorDiv = document.getElementById('error-display');
+            errorDiv.style.display = 'block';
+            errorDiv.innerHTML = \`
+                <h3 style="color: #c00; margin: 0 0 10px 0; font-size: 18px;">\${title}</h3>
+                <p style="margin: 0 0 10px 0; color: #600; font-size: 14px;">\${message}</p>
+                <pre style="margin: 0; padding: 10px; background: #fff; border: 1px solid #ddd; border-radius: 4px; font-size: 11px; overflow: auto; max-height: 200px;">\${details}</pre>
             \`;
-            console.error('Preview error:', err);
+            console.error(title, message, details);
+        }
+
+        // Wait for all CDN libs to load
+        let checkCount = 0;
+        const checkInterval = setInterval(() => {
+            checkCount++;
+            
+            if (checkCount > 50) { // 5 seconds timeout
+                clearInterval(checkInterval);
+                showError(
+                    'CDN Loading Timeout',
+                    'React, ReactDOM, or Framer Motion failed to load',
+                    'Check your internet connection or firewall settings'
+                );
+                return;
+            }
+            
+            if (typeof React !== 'undefined' && typeof ReactDOM !== 'undefined' && typeof Motion !== 'undefined') {
+                clearInterval(checkInterval);
+                initComponent();
+            }
+        }, 100);
+
+        function initComponent() {
+            try {
+                const { useState, useEffect, useRef, useCallback } = React;
+                const { motion, AnimatePresence, useScroll, useTransform } = Motion;
+                
+                // Component code
+                let componentCode = \`${processedCode.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+                
+                console.log('Original component code length:', componentCode.length);
+                
+                // Remove imports (we're using CDN)
+                componentCode = componentCode.replace(/^import.*from.*$/gm, '');
+                
+                // Remove export
+                componentCode = componentCode.replace(/^export\\s+(function|const|default)/gm, '$1');
+                componentCode = componentCode.replace(/export\\s+default\\s+/g, '');
+                
+                console.log('Processed code:', componentCode.substring(0, 200) + '...');
+                
+                // Try multiple extraction patterns
+                let componentMatch = componentCode.match(/(?:function|const)\\s+(\\w+)\\s*=?\\s*(?:\\(.*?\\)|\\([\\s\\S]*?\\))\\s*(?:=>\\s*)?\\{[\\s\\S]*?\\n\\}/);
+                
+                if (!componentMatch) {
+                    // Try finding default export function
+                    componentMatch = componentCode.match(/function\\s+(\\w+)\\s*\\([^)]*\\)/);
+                }
+                
+                if (!componentMatch) {
+                    // Try arrow function
+                    componentMatch = componentCode.match(/const\\s+(\\w+)\\s*=\\s*\\([^)]*\\)\\s*=>/);
+                }
+                
+                if (componentMatch) {
+                    const componentName = componentMatch[1];
+                    console.log('Found component:', componentName);
+                    
+                    try {
+                        // Create component function with all necessary imports
+                        const ComponentFunction = new Function(
+                            'React', 'useState', 'useEffect', 'useRef', 'useCallback',
+                            'motion', 'AnimatePresence', 'useScroll', 'useTransform',
+                            componentCode + '; return ' + componentName + ';'
+                        );
+                        
+                        const Component = ComponentFunction(
+                            React, useState, useEffect, useRef, useCallback,
+                            motion, AnimatePresence, useScroll, useTransform
+                        );
+                        
+                        console.log('Component created successfully');
+                        
+                        // Render component
+                        const root = ReactDOM.createRoot(document.getElementById('root'));
+                        root.render(React.createElement(Component));
+                        
+                        console.log('Component rendered');
+                    } catch (execError) {
+                        showError(
+                            'Component Execution Error',
+                            'Failed to create or render component',
+                            execError.message + '\\n\\nComponent Name: ' + componentName + '\\n\\nStack: ' + execError.stack
+                        );
+                    }
+                } else {
+                    showError(
+                        'Component Parsing Error',
+                        'Could not find component function in code',
+                        'Tried multiple patterns but none matched.\\n\\nCode preview:\\n' + componentCode.substring(0, 500)
+                    );
+                }
+            } catch (err) {
+                showError(
+                    'Initialization Error',
+                    err.message,
+                    err.stack || 'No stack trace available'
+                );
+            }
         }
     </script>
 </body>
