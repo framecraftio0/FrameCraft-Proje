@@ -3,7 +3,7 @@ import { Save, ArrowLeft, RefreshCw, FileCode, Github, FolderOpen } from 'lucide
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import CodeEditor from '@/components/admin/CodeEditor';
-import LivePreview from '@/components/admin/LivePreview';
+import LiveComponentPreview from '@/components/admin/LiveComponentPreview';
 import GitHubBrowser from '@/components/admin/GitHubBrowser';
 import { FolderUpload } from '@/components/admin/FolderUpload';
 import { templateApi } from '@/lib/api';
@@ -200,12 +200,12 @@ export default function ComponentBuilder() {
                     <div className="flex-1 bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm flex flex-col">
                         <div className="p-4 border-b bg-gray-50 font-medium text-sm flex justify-between items-center">
                             <span>Canlı Önizleme</span>
-                            <span className="text-gray-500 text-xs font-normal">
-                                Değişkenler test verisi ile gösteriliyor
+                            <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                                ⚡ React + Framer Motion
                             </span>
                         </div>
-                        <div className="flex-1 p-4 bg-gray-100">
-                            <LivePreview html={html} css={css} variables={testValues} />
+                        <div className="flex-1 bg-gray-100">
+                            <LiveComponentPreview />
                         </div>
                     </div>
 

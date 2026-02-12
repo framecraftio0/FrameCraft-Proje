@@ -81,6 +81,14 @@ export function FolderUpload({ onComponentParsed }: FolderUploadProps) {
         }
     };
 
+    // Write component code to localStorage for preview
+    const writeTempFiles = async (componentCode: string, cssCode: string) => {
+        localStorage.setItem('temp-preview-component', componentCode);
+        localStorage.setItem('temp-preview-css', cssCode);
+        localStorage.setItem('temp-preview-timestamp', Date.now().toString());
+        console.log('Component saved to localStorage for preview');
+    };
+
     const parseAndSubmit = async (files: UploadedFile[]) => {
         try {
             // Find main component file
@@ -108,6 +116,14 @@ export function FolderUpload({ onComponentParsed }: FolderUploadProps) {
             const variables = detectVariables(mainComponent.content);
 
             const componentName = mainComponent.name.replace(/\.(tsx|jsx)$/, '');
+
+            // Write temp files for live preview
+            try {
+                await writeTempFiles(mainComponent.content, cssContent);
+            } catch (writeErr) {
+                console.warn('Failed to write temp files for preview:', writeErr);
+                // Continue anyway - preview won't work but component can still be saved
+            }
 
             onComponentParsed({
                 name: componentName,
