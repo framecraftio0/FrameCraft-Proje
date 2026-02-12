@@ -17,6 +17,7 @@ interface FolderUploadProps {
         css: string;
         js?: string;
         variables: Record<string, string>;
+        originalCode?: string;
     }) => void;
 }
 
@@ -113,7 +114,8 @@ export function FolderUpload({ onComponentParsed }: FolderUploadProps) {
                 category: 'Hero', // Default category, user can change later
                 html: htmlContent,
                 css: cssContent,
-                variables
+                variables,
+                originalCode: mainComponent.content // Pass original TSX for React preview
             });
 
             setIsProcessing(false);
