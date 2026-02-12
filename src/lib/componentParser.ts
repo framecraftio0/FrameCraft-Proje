@@ -112,9 +112,11 @@ async function parseStaticComponent(files: GitHubFile[]): Promise<ParsedComponen
  */
 async function parseReactComponent(config: GitHubConfig): Promise<ParsedComponent> {
     // Browse component directory
+
     const srcPath = (config.path && config.path.trim() !== '')
         ? `${config.path}/src`
         : 'src';
+
 
     const srcFiles = await browseGitHubDirectory({
         ...config,
@@ -139,6 +141,7 @@ async function parseReactComponent(config: GitHubConfig): Promise<ParsedComponen
             const fullPath = (config.path && config.path.trim() !== '')
                 ? `${config.path}/${componentPath}`
                 : componentPath;
+
 
             const componentFiles = await browseGitHubDirectory({
                 ...config,

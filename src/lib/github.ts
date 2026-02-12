@@ -1,6 +1,6 @@
 /**
  * GitHub API Integration for Component Management
- * Enables fetching component files from GitHub repositories
+ * Uses backend proxy to avoid rate limiting and keep token secure
  */
 
 export interface GitHubFile {
@@ -16,42 +16,43 @@ export interface GitHubConfig {
     repo: string;
     path: string;
     branch?: string;
-    token?: string;
+    token?: string; // Not used anymore, kept for backward compatibility
 }
 
 /**
- * Fetch contents of a GitHub repository directory
+ * Fetch contents of a GitHub repository directory via backend proxy
  */
 export async function fetchGitHubContents(
     config: GitHubConfig
 ): Promise<GitHubFile[]> {
-    const { owner, repo, path, branch = 'main', token } = config;
-
-    const headers: Record<string, string> = {
-        'Accept': 'application/vnd.github.v3+json'
-    };
-
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
+    const { owner, repo, path, branch = 'main' } = config;
 
     try {
-        const response = await fetch(url, { headers });
+        const response = await fetch('/api/github/browse', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                owner,
+                repo,
+                path,
+                branch
+            })
+        });
 
         if (!response.ok) {
-            if (response.status === 404) {
-                throw new Error('Repository or path not found');
-            }
-            if (response.status === 403) {
-                throw new Error('Rate limit exceeded or access denied. Try adding a GitHub token.');
-            }
-            throw new Error(`GitHub API Error: ${response.statusText}`);
+            const error = await response.json();
+            throw new Error(error.error || `API Error: ${response.statusText}`);
         }
 
         const data = await response.json();
-        return Array.isArray(data) ? data : [data];
+
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to fetch GitHub contents');
+        }
+
+        return data.files;
     } catch (error) {
         console.error('GitHub fetch error:', error);
         throw error;
@@ -59,16 +60,34 @@ export async function fetchGitHubContents(
 }
 
 /**
- * Fetch raw file content from GitHub
+ * Fetch raw file content from GitHub via backend proxy
  */
 export async function fetchFileContent(downloadUrl: string): Promise<string> {
-    const response = await fetch(downloadUrl);
+    try {
+        const response = await fetch('/api/github/content', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ url: downloadUrl })
+        });
 
-    if (!response.ok) {
-        throw new Error(`Failed to fetch file: ${response.statusText}`);
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || `Failed to fetch file: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to fetch file content');
+        }
+
+        return data.content;
+    } catch (error) {
+        console.error('File content fetch error:', error);
+        throw error;
     }
-
-    return response.text();
 }
 
 /**
