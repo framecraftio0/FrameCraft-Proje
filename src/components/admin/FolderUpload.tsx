@@ -127,23 +127,52 @@ export function FolderUpload({ onComponentParsed }: FolderUploadProps) {
         // Remove imports
         let html = reactCode.replace(/^import.*from.*$/gm, '');
 
-        // Find the return statement JSX
-        const returnMatch = reactCode.match(/return\s*\(([\s\S]*)\);?\s*}/);
+        // Find the main return statement JSX
+        const returnMatch = reactCode.match(/return\s*\(\s*([\s\S]*?)\s*\);?\s*\}[^}]*$/);
         if (returnMatch) {
             html = returnMatch[1];
+        } else {
+            // Fallback: try to find JSX in the function body
+            const jsxMatch = reactCode.match(/<[\s\S]+>/);
+            if (jsxMatch) {
+                html = jsxMatch[0];
+            }
         }
 
-        // Convert className to class
-        html = html.replace(/className=/g, 'class=');
+        // Remove React-specific attributes and convert to HTML
+        html = html
+            // Convert className to class
+            .replace(/className=/g, 'class=')
+            // Remove motion. prefix (framer-motion)
+            .replace(/<motion\.(\w+)/g, '<$1')
+            .replace(/<\/motion\.(\w+)/g, '</$1')
+            // Remove AnimatePresence wrapper
+            .replace(/<AnimatePresence[^>]*>/g, '')
+            .replace(/<\/AnimatePresence>/g, '')
+            // Convert self-closing tags to proper HTML
+            .replace(/<(\w+)([^>]*)\s*\/>/g, '<$1$2></$1>')
+            // Remove JSX expressions in attributes (keep simple ones)
+            .replace(/\{\`([^`]+)\`\}/g, '$1')  // Template literals
+            .replace(/\{(['"])([^'"]+)\1\}/g, '$2')  // String literals
+            // Remove TypeScript annotations
+            .replace(/<(\w+)\s+[\w\s]*:\s*[\w<>[\]|]+\s*=/g, '<$1 ')
+            // Remove event handlers
+            .replace(/\s+on[A-Z]\w*=\{[^}]+\}/g, '')
+            // Remove ref attributes
+            .replace(/\s+ref=\{[^}]+\}/g, '')
+            // Remove complex JSX expressions (keep content placeholders)
+            .replace(/\{currentSlideData\.(\w+)\}/g, '{{$1}}')
+            .replace(/\{(\w+)\.(\w+)\}/g, '{{$1_$2}}')
+            .replace(/\{(\w+)\}/g, '{{$1}}')
+            // Clean up multiple spaces
+            .replace(/\s+/g, ' ')
+            // Trim
+            .trim();
 
-        // Convert self-closing tags
-        html = html.replace(/<(\w+)([^>]*)\s*\/>/g, '<$1$2></$1>');
-
-        // Remove TypeScript type annotations
-        html = html.replace(/:\s*\w+(\[\])?/g, '');
-
-        // Clean up
-        html = html.trim();
+        // If we couldn't extract proper HTML, return a basic structure
+        if (!html || html.length < 20) {
+            html = '<div class="component-preview"><p>Component preview unavailable - use manual editing</p></div>';
+        }
 
         return html;
     };
@@ -151,20 +180,42 @@ export function FolderUpload({ onComponentParsed }: FolderUploadProps) {
     const detectVariables = (reactCode: string): Record<string, string> => {
         const variables: Record<string, string> = {};
 
-        // Detect const declarations
-        const constMatches = reactCode.matchAll(/const\s+(\w+)\s*=\s*['"`]([^'"`]+)['"`]/g);
-        for (const match of constMatches) {
-            variables[match[1]] = match[2];
+        // Detect slides/data arrays
+        const slidesMatch = reactCode.match(/const\s+slides[^=]*=\s*\[([\s\S]*?)\];/);
+        if (slidesMatch) {
+            // Extract first slide data as defaults
+            const firstSlide = slidesMatch[1].match(/\{\s*id:\s*\d+,?\s*([\s\S]*?)\}/);
+            if (firstSlide) {
+                // Extract properties from first slide
+                const props = firstSlide[1].matchAll(/(\w+):\s*['"`]([^'"`]+)['"`]/g);
+                for (const match of props) {
+                    variables[match[1]] = match[2];
+                }
+            }
         }
 
-        // Detect string literals in JSX
-        const stringMatches = reactCode.matchAll(/>\s*([A-Z][^<]{3,50})\s*</g);
-        for (const match of stringMatches) {
+        // Detect simple const declarations
+        const constMatches = reactCode.matchAll(/const\s+(\w+)\s*=\s*['"`]([^'"`]+)['"`]/g);
+        for (const match of constMatches) {
+            if (!['Hero', 'Component', 'App'].includes(match[1])) {
+                variables[match[1]] = match[2];
+            }
+        }
+
+        // Detect string literals in JSX (headings, paragraphs)
+        const textMatches = reactCode.matchAll(/>([A-Z][a-zA-Z\s]{5,50})</g);
+        for (const match of textMatches) {
             const text = match[1].trim();
-            if (text && !text.includes('{') && !text.includes('(')) {
-                const varName = text.toLowerCase().replace(/\s+/g, '_');
+            if (text && !text.includes('{') && !text.includes('(') && !text.startsWith('<')) {
+                const varName = text.toLowerCase().replace(/[^a-z0-9]+/g, '_').substring(0, 30);
                 variables[varName] = text;
             }
+        }
+
+        // If no variables detected, add some defaults
+        if (Object.keys(variables).length === 0) {
+            variables['title'] = 'Component Title';
+            variables['description'] = ' Component description';
         }
 
         return variables;
